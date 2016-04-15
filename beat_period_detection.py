@@ -161,4 +161,3 @@ def beat_period_detection(defs, oss_sr, oss_data, plot=False):
             pylab.show()
             exit(1)
     return tempo_lags
-

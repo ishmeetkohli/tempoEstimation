@@ -1,6 +1,7 @@
 import numpy
 import scipy.signal
 import pylab
+import overlap
 
 
 def marsyas_hamming(N):
@@ -11,7 +12,7 @@ def marsyas_hamming(N):
 def onset_strength_signal(defs, wav_sr, wav_data, plot=False):
     ### overlapping time data
     # add extra window of zeros at beginning to match marsyas
-    overlapped = sliding_window(
+    overlapped = overlap.sliding_window(
         numpy.append(
             numpy.zeros(defs.OSS_WINDOWSIZE - defs.OSS_HOPSIZE),
             wav_data),
@@ -120,32 +121,3 @@ def onset_strength_signal(defs, wav_sr, wav_data, plot=False):
     if plot:
         pylab.legend()
     return oss_sr, filtered_flux
-
-
-def sliding_window(a,ws,ss = None,flatten = True):
-    if None is ss:
-        ss = ws
-    ws = norm_shape(ws)
-    ss = norm_shape(ss)
-
-    ws = numpy.array(ws)
-    ss = numpy.array(ss)
-    shape = numpy.array(a.shape)
-
-    ls = [len(shape),len(ws),len(ss)]
-    if 1 != len(set(ls)):
-        raise ValueError('a.shape, ws and ss must all have the same length. The were %s' % str(ls))
-
-    if numpy.any(ws > shape):
-        raise ValueError('ws cannot be larger than a in any dimension. a.shape was %s and ws was %s' % (str(a.shape),str(ws)))
-
-    newshape = norm_shape(((shape - ws) // ss) + 1)
-    newshape += norm_shape(ws)
-    newstrides = norm_shape(numpy.array(a.strides) * ss) + a.strides
-    strided = numpy.lib.stride_tricks.as_strided(a,shape = newshape,strides = newstrides)
-    if not flatten:
-        return strided
-    meat = len(ws) if ws.shape else 0
-    firstdim = (numpy.product(newshape[:-meat]),) if ws.shape else ()
-    dim = firstdim + (newshape[-meat:])
-    return strided.reshape(dim)
